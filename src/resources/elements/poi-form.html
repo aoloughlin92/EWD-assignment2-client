@@ -1,0 +1,19 @@
+<template>
+  <form submit.trigger="uploadPOI()" class="ui form stacked segment">
+    <h3 class='ui dividing header'> Upload POI</h3>
+    <div class="field">
+      <label>Name</label> <input type="text" value.bind="name">
+      <label>Description</label><input type="text" value.bind="description">
+    </div>
+    <h4 class="ui dividing header"> Select Category </h4>
+    <div class="grouped inline fields">
+      <div class="field" repeat.for="category of categories">
+        <div class="ui radio checkbox">
+          <input type="radio" model.bind="category" checked.bind="selectedCategory">
+          <label>${category.name}</label>
+        </div>
+      </div>
+    </div>
+    <button class="ui blue submit button">Upload</button>
+  </form>
+</template>

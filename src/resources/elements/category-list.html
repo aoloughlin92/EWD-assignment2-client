@@ -1,0 +1,15 @@
+<template>
+  <h4 class="ui dividing header">Categories</h4>
+  <table class="ui celled table segment">
+    <thead>
+    <tr>
+      <th>Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr repeat.for="category of categories">
+      <td>${category.name}</td>
+    </tr>
+    </tbody>
+  </table>
+</template>
