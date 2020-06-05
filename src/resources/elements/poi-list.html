@@ -8,6 +8,10 @@
         <th>Description</th>
         <th>Category</th>
         <th>Creator</th>
+        <th>Image</th>
+        <th>View</th>
+        <th>Edit</th>
+        <th>Delete</th>
       </tr>
       </thead>
       <tbody>
@@ -16,6 +20,10 @@
         <td>${poi.description}</td>
         <td>${poi.category.name}</td>
         <td>${poi.creator.firstName} ${poi.creator.lastName}</td>
+        <td><img class="ui medium image" src="${poi.imageurls[0]}"></td>
+        <td><a class="ui icon button"> <i class="icon list"></i></a></td>
+        <td><a class="ui icon button"> <i class="icon edit"></i></a></td>
+        <td><a class="ui icon button"> <i class="icon trash"></i></a></td>
       </tr>
       </tbody>
     </table>

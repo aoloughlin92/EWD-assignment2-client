@@ -1,33 +1,35 @@
 import {inject} from 'aurelia-framework';
 import { bindable } from 'aurelia-framework';
-import { Category, POI } from '../../services/poi-types';
+import { Category, Location } from '../../services/poi-types';
 import {PoiService} from "../../services/poi-service";
 
 @inject(PoiService)
 export class PoiForm {
   name = '';
   description='';
-
- // @bindable
- // pois: POI[] = [];
-
   @bindable
   categories: Category[] =[];
   selectedCategory: Category = null;
 
-  constructor (private ps: PoiService){}
-  uploadPOI(){
-    this.ps.createPoi(this.name,this.description, this.selectedCategory);
+  @bindable
+  imagefile= null;
+  location: Location = null;
+
+  constructor (private ps: PoiService){
+    this.importCategories();
   }
-
-
-  /*uploadPOI(){
-    const poi ={
-      name: this.name,
-      description: this.description,
-      category: this.selectedCategory
+  async importCategories(){
+    const response = await this.ps.getCategories();
+    this.categories = this.ps.categories;
+  }
+  async uploadPOI(){
+    var imageid = "";
+    var imageurl = "";
+    if(this.imagefile) {
+      const response = await this.ps.uploadImage(this.imagefile);
+      imageid = response.public_id;
+      imageurl = response.url;
     }
-    this.pois.push(poi);
-    console.log(this.pois);
-  }*/
+    await this.ps.createPoi(this.name,this.description, this.selectedCategory, this.location, imageid, imageurl);
+  }
 }

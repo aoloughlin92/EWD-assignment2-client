@@ -1,10 +1,13 @@
 <template>
-  <form submit.trigger="uploadPOI()" class="ui form stacked segment">
+  <require from="./coordinates"></require>
+
+  <form submit.trigger="uploadPOI()" class="ui form stacked segment" enctype="multipart/form-data">
     <h3 class='ui dividing header'> Upload POI</h3>
     <div class="field">
       <label>Name</label> <input type="text" value.bind="name">
       <label>Description</label><input type="text" value.bind="description">
     </div>
+    <coordinates location.two-way="location"></coordinates>
     <h4 class="ui dividing header"> Select Category </h4>
     <div class="grouped inline fields">
       <div class="field" repeat.for="category of categories">
@@ -14,6 +17,15 @@
         </div>
       </div>
     </div>
-    <button class="ui blue submit button">Upload</button>
+    <div class="uk-margin">
+      <label class="uk-form-label">Select Image</label>
+      <div class="uk-form-controls">
+        <input type="file" class="uk-input" files.bind="imagefile" accept="image/png, image/jpeg">
+      </div>
+    </div>
+    <p uk-margin>
+      <input type="submit" value="Upload" class="uk-button uk-button-default">
+    </p>
   </form>
 </template>
+<button class="ui blue submit button">Upload</button>

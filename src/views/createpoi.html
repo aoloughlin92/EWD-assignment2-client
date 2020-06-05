@@ -1,13 +1,6 @@
 <template>
-  <require from="../resources/elements/poi-list"></require>
   <require from="../resources/elements/poi-form"></require>
-
-  <div class="ui stackable two column grid">
-    <div class="column">
+  <div>
       <poi-form pois.two-way="pois" categories.bind="categories"></poi-form>
-    </div>
-    <div class="column">
-      <poi-list pois.bind="pois"></poi-list>
-    </div>
   </div>
 </template>
