@@ -22,6 +22,27 @@ export class App {
         title: 'View POIs'
       },
       {
+        route: 'poi/:id',
+        name: 'POI',
+        moduleId: PLATFORM.moduleName('views/poi'),
+        nav: false,
+        title: 'POI'
+      },
+      {
+        route: 'editpoi/:id',
+        name: 'Edit POI',
+        moduleId: PLATFORM.moduleName('views/editpoi'),
+        nav: false,
+        title: 'Edit POI'
+      },
+      {
+        route: 'delete/:id',
+        name: 'Delete POI',
+        moduleId: PLATFORM.moduleName('views/deletepoi'),
+        nav: false,
+        title: 'Delete POI'
+      },
+      {
         route: 'categories',
         name: 'categories',
         moduleId: PLATFORM.moduleName('views/categories'),

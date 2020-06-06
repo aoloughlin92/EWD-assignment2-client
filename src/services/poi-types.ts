@@ -11,6 +11,7 @@ export interface POI{
   imageurls: string[];
   creator: User;
   ratings: Rating[];
+  _id: string;
 }
 export interface User{
   firstName: string;
@@ -27,6 +28,7 @@ export interface RawPOI{
   location: string;
   imageids: string[];
   imageurls: string[];
+  _id: string;
 }
 export interface Location{
   lat: number;

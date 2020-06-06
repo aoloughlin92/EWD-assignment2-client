@@ -8,11 +8,11 @@ import {TotalUpdate} from "./messages";
 import { EventAggregator } from 'aurelia-event-aggregator';
 
 @inject(HttpClient,EventAggregator,Aurelia,Router)
-export class PoiService{
+export class PoiService {
   categories: Category[] = [];
-  pois: POI[] =[];
+  pois: POI[] = [];
   locations: Location[];
-  notices: Notice[] =[];
+  notices: Notice[] = [];
 
 
   users: Map<string, User> = new Map();
@@ -20,24 +20,16 @@ export class PoiService{
 
   commentsById: Map<string, Comment> = new Map();
 
-  constructor(private httpClient: HttpClient, private ea: EventAggregator, private au: Aurelia, private router: Router){
-    httpClient.configure(http =>{
+
+  constructor(private httpClient: HttpClient, private ea: EventAggregator, private au: Aurelia, private router: Router) {
+    httpClient.configure(http => {
       http.withBaseUrl('http://LAPTOP-455FH4G9:3000');
     });
   }
-  async getComments(){
-    const response = await this.httpClient.get('/api/comments');
-    const comments = await response.content;
-    comments.forEach(comment => {
-      const newComment = {
-        commenter: this.usersById.get(comment.commenter),
-        comment: comment.comment,
-        _id: comment._id
-      };
-      this.commentsById.set(comment._id,comment);
-    });
-  }
-  async getUsers(){
+
+  // USER METHODS
+
+  async getUsers() {
     const response = await this.httpClient.get('/api/users');
     const users = await response.content;
     users.forEach(user => {
@@ -46,12 +38,14 @@ export class PoiService{
     });
     console.log("Getting Users");
   }
-  async getCurrentUser(){
+
+  async getCurrentUser() {
     const response = await this.httpClient.get('/api/user');
     const user = this.usersById.get(response.content);
     return user;
   }
-  async updateUser(firstName: string, lastName:string, email: string, password: string){
+
+  async updateUser(firstName: string, lastName: string, email: string, password: string) {
     const user = await this.getCurrentUser();
     const userId = user._id;
     const update = {
@@ -63,41 +57,17 @@ export class PoiService{
     };
     const response = await this.httpClient.post('/api/user/update', update);
   }
-  async getCategories(){
+
+
+  // CATEGORY METHODS
+
+  async getCategories() {
     this.categories = [];
     const response = await this.httpClient.get('/api/categories');
     this.categories = await response.content;
     console.log("Getting Categories");
   }
-  async getLocations(){
-    this.locations = [];
-    const response = await this.httpClient.get('/api/locations');
-    this.locations = await response.content;
-    console.log("Getting Locations");
-  }
-  async getNotices(){
-    await this.getComments();
-    this.notices = [];
-    const response = await this.httpClient.get('/api/notices');
-    const rawNotices: RawNotice[] = await response.content;
-    rawNotices.forEach(rawNotice => {
-      let comments: Comment[] =[];
-      const rawComments: string[] = rawNotice.comments;
-      rawComments.forEach(rawComment =>{
-        let comment = this.commentsById.get(rawComment);
-        comments.push(comment);
-      });
-      const notice = {
-        heading: rawNotice.heading,
-        body: rawNotice.body,
-        user: this.usersById.get(rawNotice.user),
-        _id: rawNotice._id,
-        comments:comments
-      };
-      this.notices.push(notice);
-    });
-    return this.notices;
-  }
+
   async createCategory(name: string) {
     const category = {
       name: name
@@ -106,7 +76,32 @@ export class PoiService{
     const newCategory = await response.content;
     this.categories.push(newCategory);
   }
-  async createPoi(name: string, description:string, category: Category, location: Location, imageid: string, imageurl:string){
+
+
+  // POI METHODS
+
+  async getPOIs() {
+    this.pois = [];
+    const response = await this.httpClient.get('/api/pois');
+    const rawPOIs: RawPOI[] = await response.content;
+    rawPOIs.forEach(rawPOI => {
+      const poi = {
+        name: rawPOI.name,
+        description: rawPOI.description,
+        category: this.categories.find(category => rawPOI.category == category._id),
+        creator: this.usersById.get(rawPOI.creator),
+        location: this.locations.find(location => rawPOI.location == location._id),
+        imageids: rawPOI.imageids,
+        imageurls: rawPOI.imageurls,
+        ratings: [],
+        _id: rawPOI._id
+      };
+      this.pois.push(poi);
+    });
+    console.log("Getting POIS");
+  }
+
+  async createPoi(name: string, description: string, category: Category, location: Location, imageid: string, imageurl: string) {
     const newPoi = {
       name: name,
       description: description,
@@ -116,37 +111,104 @@ export class PoiService{
       imageurls: [imageurl]
     };
     const response = await this.httpClient.post('/api/categories/' + category._id + '/pois', newPoi);
-    const poi ={
-        name: name,
-        description: description,
-        category: category,
-        location: location,
-        imageids: [imageid],
-        imageurls: [imageurl],
-        creator: this.usersById.get(response.content.creator),
-        ratings: []
+    const poi = {
+      name: name,
+      description: description,
+      category: category,
+      location: location,
+      imageids: [imageid],
+      imageurls: [imageurl],
+      creator: this.usersById.get(response.content.creator),
+      ratings: [],
+      _id: response.content._id
     };
     this.pois.push(poi);
     this.ea.publish(new TotalUpdate(poi));
     //go to poi view
-    this.router.navigate('viewpoi' );
+    this.router.navigate('viewpoi');
   }
-  async uploadImage(imagefile: any){
+
+  async editPOI(id: string, name: string, description: string, category: Category, location: Location){
+    const poiEdit ={
+      id: id,
+      name: name,
+      description: description,
+      category: category,
+      location: location,
+    };
+    const response = await this.httpClient.post('/api/pois/'+id, poiEdit);
+    console.log(response.content);
+
+  }
+
+  async deletePOI(id: string){
+    const response = await this.httpClient.delete('/api/pois/'+id);
+    console.log(response);
+    return response;
+    await this.reset();
+    this.router.navigate('viewpoi');
+  }
+
+  async deleteRedirect(){
+    this.router.navigate('viewpoi');
+  }
+
+  async addImage(id: string, imageid: string, imageurl: string){
+    const imageDetails={
+      imageid: imageid,
+      imageurl: imageurl
+    };
+    const response = await this.httpClient.post('/api/pois/'+id +'/addimage', imageDetails);
+    console.log(response.content);
+  }
+
+  async uploadImage(imagefile: any) {
     const cloudinaryHttp = new HttpClient();
-    cloudinaryHttp.configure(http =>{
+    cloudinaryHttp.configure(http => {
       http.withBaseUrl("https://api.cloudinary.com/v1_1/dc1jyvek3");
     });
     const formData = new FormData();
     formData.append("file", imagefile[0]);
-    formData.append("upload_preset","ol3rdu40");
-    try{
-      const response = await cloudinaryHttp.post("/image/upload",formData);
-      return(response.content);
-    }catch (err) {
+    formData.append("upload_preset", "ol3rdu40");
+    try {
+      const response = await cloudinaryHttp.post("/image/upload", formData);
+      return (response.content);
+    } catch (err) {
       console.log(err);
     }
 
   }
+
+  async getPOIById(id: string) {
+    /*const poi = this.pois.find(poi => id == poi._id);
+    console.log(poi);
+    return poi;*/
+    const response = await this.httpClient.get('/api/pois/'+id);
+    const poi = {
+      name: response.content.name,
+      description: response.content.description,
+      category: this.categories.find(category => response.content.category == category._id),
+      creator: this.usersById.get(response.content.creator),
+      location: this.locations.find( location => response.content.location == location._id),
+      imageids: response.content.imageids,
+      imageurls: response.content.imageurls,
+      ratings: [],
+      _id: response.content._id
+    };
+    console.log(poi);
+    return poi;
+
+  }
+
+
+  async getLocations() {
+    this.locations = [];
+    const response = await this.httpClient.get('/api/locations');
+    this.locations = await response.content;
+    console.log("Getting Locations");
+  }
+
+  //Signup,  Login, Logout, Authenticate and Router
 
   async signup(firstName: string, lastName: string, email: string, password: string) {
     const user = {
@@ -170,18 +232,14 @@ export class PoiService{
   async login(email: string, password: string) {
     let success = false;
     try {
-      const response = await this.httpClient.post('/api/users/authenticate', { email: email, password: password });
+      const response = await this.httpClient.post('/api/users/authenticate', {email: email, password: password});
       const status = await response.content;
       if (status.success) {
         this.httpClient.configure((configuration) => {
           configuration.withHeader('Authorization', 'bearer ' + status.token);
         });
-        localStorage.poi =JSON.stringify(response.content);
-        await this.getCategories();
-        await this.getUsers();
-        await this.getLocations();
-        await this.getPOIs();
-        this.getNotices();
+        localStorage.poi = JSON.stringify(response.content);
+        await this.reset();
         this.changeRouter(PLATFORM.moduleName('app'));
         success = status.success;
       }
@@ -192,39 +250,19 @@ export class PoiService{
   }
 
   logout() {
-    localStorage.poi =null;
+    localStorage.poi = null;
     this.httpClient.configure(configuration => {
       configuration.withHeader('Authorization', '');
     });
     this.changeRouter(PLATFORM.moduleName('start'));
   }
 
-  changeRouter(module:string) {
-    this.router.navigate('/', { replace: true, trigger: false });
+  changeRouter(module: string) {
+    this.router.navigate('/', {replace: true, trigger: false});
     this.router.reset();
     this.au.setRoot(PLATFORM.moduleName(module));
   }
 
-
-  async getPOIs() {
-    this.pois = [];
-    const response = await this.httpClient.get('/api/pois');
-    const rawPOIs: RawPOI[] = await response.content;
-    rawPOIs.forEach(rawPOI => {
-      const poi = {
-        name: rawPOI.name,
-        description : rawPOI.description,
-        category: this.categories.find(category => rawPOI.category == category._id),
-        creator: this.usersById.get(rawPOI.creator),
-        location: this.locations.find(location => rawPOI.location == location._id),
-        imageids: rawPOI.imageids,
-        imageurls:rawPOI.imageurls,
-        ratings: []
-      };
-      this.pois.push(poi);
-    });
-    console.log("Getting POIS");
-  }
   checkIsAuthenticated() {
     let authenticated = false;
     if (localStorage.poi !== 'null') {
@@ -241,8 +279,57 @@ export class PoiService{
       this.changeRouter(PLATFORM.moduleName('app'));
     }
   }
-  async createNotice(heading: string, body: string){
-    const newNotice ={
+
+  async reset(){
+    await this.getCategories();
+    await this.getUsers();
+    await this.getLocations();
+    await this.getPOIs();
+    await this.getNotices();
+  }
+
+  //Notices and Comments
+
+  async getComments() {
+    const response = await this.httpClient.get('/api/comments');
+    const comments = await response.content;
+    comments.forEach(comment => {
+      const newComment = {
+        commenter: this.usersById.get(comment.commenter),
+        comment: comment.comment,
+        _id: comment._id
+      };
+      this.commentsById.set(comment._id, comment);
+    });
+  }
+
+  async getNotices() {
+    await this.getComments();
+    this.notices = [];
+    const response = await this.httpClient.get('/api/notices');
+    const rawNotices: RawNotice[] = await response.content;
+    rawNotices.forEach(rawNotice => {
+      let comments: Comment[] = [];
+      const rawComments: string[] = rawNotice.comments;
+      rawComments.forEach(rawComment => {
+        let comment = this.commentsById.get(rawComment);
+        comments.push(comment);
+      });
+      const notice = {
+        heading: rawNotice.heading,
+        body: rawNotice.body,
+        user: this.usersById.get(rawNotice.user),
+        _id: rawNotice._id,
+        comments: comments
+      };
+
+      this.notices.push(notice);
+    });
+    return this.notices;
+  }
+
+  async createNotice(heading: string, body: string) {
+    const newNotice = {
       heading: heading,
       body: body
     };
@@ -250,14 +337,18 @@ export class PoiService{
     const notice = {
       heading: heading,
       body: body,
-      user: this.usersById.get(response.content.creator),
+      user: this.usersById.get(response.content.user),
       comments: [],
       _id: response.content.id
     };
     this.notices.push(notice);
-    await this.getNotices();
+    await this.reset();
   }
-  async createComment(comment: string, noticeId: string){
+
+  async createComment(comment: string, noticeId: string) {
+    if(comment.length==0){
+      return null;
+    }
     const response = await this.httpClient.post('/api/comments', comment);
     const commentId = response.content._id;
     const newComment = {
@@ -265,7 +356,14 @@ export class PoiService{
       noticeId: noticeId
     };
     const responseNotice = await this.httpClient.post('/api/notices/comment', newComment);
-    await this.getNotices();
-    this.router.navigate('social' );
+    await this.reset();
   }
+
+
+
+
 }
+
+
+
+
