@@ -19,7 +19,7 @@ export class App {
         name: 'viewpoi',
         moduleId: PLATFORM.moduleName('views/viewpoi'),
         nav: true,
-        title: 'View POIs'
+        title: 'View My POIs'
       },
       {
         route: 'poi/:id',
@@ -36,11 +36,18 @@ export class App {
         title: 'Edit POI'
       },
       {
-        route: 'delete/:id',
-        name: 'Delete POI',
-        moduleId: PLATFORM.moduleName('views/deletepoi'),
+        route: 'category/:id',
+        name: 'Category',
+        moduleId: PLATFORM.moduleName('views/category'),
         nav: false,
-        title: 'Delete POI'
+        title: 'Category'
+      },
+      {
+        route: 'ratings/:id',
+        name: 'Ratings',
+        moduleId: PLATFORM.moduleName('views/ratings'),
+        nav: false,
+        title: 'Ratings'
       },
       {
         route: 'categories',

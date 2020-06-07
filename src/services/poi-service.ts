@@ -2,7 +2,7 @@ import { inject, Aurelia } from 'aurelia-framework';
 import { Router } from 'aurelia-router';
 import { PLATFORM } from 'aurelia-pal';
 import {RawNotice} from './poi-types';
-import {Category, POI, Location, User, RawPOI, Rating, Notice, Comment} from './poi-types';
+import {Category, POI, Location, User, RawPOI, Rating, Notice, Comment,Admin} from './poi-types';
 import {HttpClient} from 'aurelia-http-client';
 import {TotalUpdate} from "./messages";
 import { EventAggregator } from 'aurelia-event-aggregator';
@@ -11,9 +11,15 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 export class PoiService {
   categories: Category[] = [];
   pois: POI[] = [];
+  myPois: POI[] = [];
+  userPois: POI[] = [];
   locations: Location[];
   notices: Notice[] = [];
+  poisByCategory: POI[] = [];
+  ratingsByPOI: Rating[] = [];
+  userArray: User[] = [];
 
+  ratingsById: Map<string, Rating> = new Map();
 
   users: Map<string, User> = new Map();
   usersById: Map<string, User> = new Map();
@@ -30,19 +36,27 @@ export class PoiService {
   // USER METHODS
 
   async getUsers() {
+    this.userArray = [];
     const response = await this.httpClient.get('/api/users');
     const users = await response.content;
     users.forEach(user => {
+      this.userArray.push(user);
       this.users.set(user.email, user);
       this.usersById.set(user._id, user);
     });
-    console.log("Getting Users");
+    //console.log("Getting Users");
   }
 
   async getCurrentUser() {
     const response = await this.httpClient.get('/api/user');
     const user = this.usersById.get(response.content);
     return user;
+  }
+
+  async getCurrentAdmin() {
+    const response = await this.httpClient.get('/api/admin');
+    const admin: Admin= response.content;
+    return admin;
   }
 
   async updateUser(firstName: string, lastName: string, email: string, password: string) {
@@ -58,6 +72,35 @@ export class PoiService {
     const response = await this.httpClient.post('/api/user/update', update);
   }
 
+  async updateAdmin(firstName: string, lastName: string, email: string, password: string){
+    const update = {
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password
+    };
+    const response = await this.httpClient.post('/api/admin/update', update);
+  }
+
+  async editUser(firstName: string, lastName: string, email: string, password: string, userId:string) {
+    const update = {
+      id: userId,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password
+    };
+    const response = await this.httpClient.post('/api/user/update', update);
+  }
+
+  async deleteUser(userId: string){
+    const response = await this.httpClient.delete('/api/users/'+userId);
+  }
+
+  async getUserById(id){
+    const user = this.usersById.get(id);
+    return user;
+  }
 
   // CATEGORY METHODS
 
@@ -65,7 +108,7 @@ export class PoiService {
     this.categories = [];
     const response = await this.httpClient.get('/api/categories');
     this.categories = await response.content;
-    console.log("Getting Categories");
+    //console.log("Getting Categories");
   }
 
   async createCategory(name: string) {
@@ -82,9 +125,17 @@ export class PoiService {
 
   async getPOIs() {
     this.pois = [];
+    this.myPois = [];
     const response = await this.httpClient.get('/api/pois');
+    const currentUser= await this.getCurrentUser();
     const rawPOIs: RawPOI[] = await response.content;
     rawPOIs.forEach(rawPOI => {
+      let ratings: Rating[] = [];
+      const rawRatings: string[] = rawPOI.ratings;
+      rawRatings.forEach(rawRating => {
+        let rating = this.ratingsById.get(rawRating);
+        ratings.push(rating);
+      });
       const poi = {
         name: rawPOI.name,
         description: rawPOI.description,
@@ -93,12 +144,44 @@ export class PoiService {
         location: this.locations.find(location => rawPOI.location == location._id),
         imageids: rawPOI.imageids,
         imageurls: rawPOI.imageurls,
-        ratings: [],
+        ratings: ratings,
         _id: rawPOI._id
       };
+      if(currentUser) {
+        if (rawPOI.creator == currentUser._id) {
+          this.myPois.push(poi);
+        }
+      }
       this.pois.push(poi);
     });
-    console.log("Getting POIS");
+    //console.log("Getting POIS");
+  }
+
+  async getPOIsByCreator(userId: string){
+    this.userPois =[];
+    const response = await this.httpClient.get('/api/users/'+userId+'/pois');
+    const user = await this.getUserById(userId);
+    const rawPOIs: RawPOI[] = await response.content;
+    rawPOIs.forEach(rawPOI => {
+      let ratings: Rating[] = [];
+      const rawRatings: string[] = rawPOI.ratings;
+      rawRatings.forEach(rawRating => {
+        let rating = this.ratingsById.get(rawRating);
+        ratings.push(rating);
+      });
+      const poi = {
+        name: rawPOI.name,
+        description: rawPOI.description,
+        category: this.categories.find(category => rawPOI.category == category._id),
+        creator: user,
+        location: this.locations.find(location => rawPOI.location == location._id),
+        imageids: rawPOI.imageids,
+        imageurls: rawPOI.imageurls,
+        ratings: ratings,
+        _id: rawPOI._id
+      };
+      this.userPois.push(poi);
+    });
   }
 
   async createPoi(name: string, description: string, category: Category, location: Location, imageid: string, imageurl: string) {
@@ -144,13 +227,9 @@ export class PoiService {
   async deletePOI(id: string){
     const response = await this.httpClient.delete('/api/pois/'+id);
     console.log(response);
-    return response;
     await this.reset();
     this.router.navigate('viewpoi');
-  }
-
-  async deleteRedirect(){
-    this.router.navigate('viewpoi');
+    return response;
   }
 
   async addImage(id: string, imageid: string, imageurl: string){
@@ -179,6 +258,13 @@ export class PoiService {
 
   }
 
+  async deleteImage(index:number, poiId: string){
+    const data = {
+      index: index,
+    };
+    const response = await this.httpClient.post('/api/pois/'+poiId + '/deleteimage', data);
+  }
+
   async getPOIById(id: string) {
     /*const poi = this.pois.find(poi => id == poi._id);
     console.log(poi);
@@ -195,17 +281,71 @@ export class PoiService {
       ratings: [],
       _id: response.content._id
     };
-    console.log(poi);
     return poi;
 
+  }
+
+  async getPOIsByCategory(id: string){
+    this.poisByCategory = [];
+    const response = await this.httpClient.get('/api/categories/'+id+'/pois');
+    const rawPOIs: RawPOI[] = await response.content;
+    rawPOIs.forEach(rawPOI => {
+      const poi = {
+        name: rawPOI.name,
+        description: rawPOI.description,
+        category: this.categories.find(category => rawPOI.category == category._id),
+        creator: this.usersById.get(rawPOI.creator),
+        location: this.locations.find(location => rawPOI.location == location._id),
+        imageids: rawPOI.imageids,
+        imageurls: rawPOI.imageurls,
+        ratings: [],
+        _id: rawPOI._id
+      };
+      this.poisByCategory.push(poi);
+    });
+  }
+
+  async getRatingsByPOI(id: string){
+    this.ratingsByPOI = [];
+    const response = await this.httpClient.get('/api/pois/'+id+'/ratings');
+    this.ratingsByPOI= response.content;
+  }
+
+  async getRatings(){
+    const response = await this.httpClient.get('/api/ratings');
+    const ratings = await response.content;
+    ratings.forEach(rating =>{
+      const newRating = {
+        rating: rating.rating,
+        review: rating.review,
+        reviewer: this.usersById.get(rating.reviewer),
+        _id: rating._id
+      };
+      this.ratingsById.set(rating._id, newRating)
+    });
+  }
+
+  async writeReview(review: string, rating: number, poiId: string) {
+    const data={
+      review: review,
+      rating: rating
+    };
+    const response = await this.httpClient.post('/api/ratings',data);
+    const ratingId = response.content._id;
+    const newRating = {
+      ratingId: ratingId,
+      poiId: poiId
+    };
+    const responsePoi = await this.httpClient.post('/api/pois/ratings', newRating);
+    await this.reset();
   }
 
 
   async getLocations() {
     this.locations = [];
     const response = await this.httpClient.get('/api/locations');
-    this.locations = await response.content;
-    console.log("Getting Locations");
+    this.locations = response.content;
+    //console.log("Getting Locations");
   }
 
   //Signup,  Login, Logout, Authenticate and Router
@@ -219,10 +359,7 @@ export class PoiService {
     };
     const response = await this.httpClient.post('/api/users', user);
     const newUser = await response.content;
-    await this.getCategories();
-    await this.getLocations();
-    await this.getUsers();
-    await this.getPOIs();
+    await this.reset();
     //this.users.set(newUser.email, newUser);
     //this.usersById.set(newUser._id, newUser);
     this.changeRouter(PLATFORM.moduleName('app'));
@@ -231,26 +368,47 @@ export class PoiService {
 
   async login(email: string, password: string) {
     let success = false;
+    let admin = null;
     try {
-      const response = await this.httpClient.post('/api/users/authenticate', {email: email, password: password});
-      const status = await response.content;
-      if (status.success) {
-        this.httpClient.configure((configuration) => {
-          configuration.withHeader('Authorization', 'bearer ' + status.token);
-        });
-        localStorage.poi = JSON.stringify(response.content);
-        await this.reset();
-        this.changeRouter(PLATFORM.moduleName('app'));
-        success = status.success;
-      }
-    } catch (e) {
-      success = false;
+        const response = await this.httpClient.post('/api/users/authenticate', {email: email, password: password});
+        const status = await response.content;
+        if (status.success) {
+          this.httpClient.configure((configuration) => {
+            configuration.withHeader('Authorization', 'bearer ' + status.token);
+          });
+          localStorage.poi = JSON.stringify(response.content);
+          await this.reset();
+          this.changeRouter(PLATFORM.moduleName('app'));
+          success = status.success;
+          return success;
+        }
     }
-    return success;
+    catch{
+      try {
+        const response = await this.httpClient.post('/api/admins/authenticate', {email: email, password: password});
+        const status = await response.content;
+        if (status.success) {
+          this.httpClient.configure((configuration) => {
+            configuration.withHeader('Authorization', 'bearer ' + status.token);
+          });
+          localStorage.poiadmin = JSON.stringify(response.content);
+          await this.reset();
+          this.changeRouter(PLATFORM.moduleName('admin'));
+          success = status.success;
+          return success;
+        }
+      }
+      catch (e) {
+        success = false;
+        return success;
+      }
+    }
   }
 
   logout() {
     localStorage.poi = null;
+    localStorage.poiadmin = null;
+    this.myPois =[];
     this.httpClient.configure(configuration => {
       configuration.withHeader('Authorization', '');
     });
@@ -271,19 +429,26 @@ export class PoiService {
         const auth = JSON.parse(localStorage.poi);
         http.withHeader('Authorization', 'bearer ' + auth.token);
       });
-      this.getLocations();
-      this.getCategories();
-      this.getUsers();
-      this.getPOIs();
-      this.getNotices();
+      this.reset();
       this.changeRouter(PLATFORM.moduleName('app'));
+    }
+    if (localStorage.poiadmin !== 'null') {
+      authenticated = true;
+      this.httpClient.configure(http => {
+        const auth = JSON.parse(localStorage.poiadmin);
+        http.withHeader('Authorization', 'bearer ' + auth.token);
+      });
+      this.reset();
+      this.changeRouter(PLATFORM.moduleName('admin'));
     }
   }
 
   async reset(){
+    console.log("Running update");
     await this.getCategories();
     await this.getUsers();
     await this.getLocations();
+    await this.getRatings();
     await this.getPOIs();
     await this.getNotices();
   }
@@ -358,6 +523,7 @@ export class PoiService {
     const responseNotice = await this.httpClient.post('/api/notices/comment', newComment);
     await this.reset();
   }
+
 
 
 

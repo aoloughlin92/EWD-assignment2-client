@@ -20,6 +20,13 @@ export interface User{
   password: string;
   _id: string;
 }
+export interface Admin{
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  _id: string;
+}
 export interface RawPOI{
   name: string;
   description: string;
@@ -28,6 +35,7 @@ export interface RawPOI{
   location: string;
   imageids: string[];
   imageurls: string[];
+  ratings: string[];
   _id: string;
 }
 export interface Location{

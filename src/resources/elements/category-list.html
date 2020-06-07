@@ -4,11 +4,13 @@
     <thead>
     <tr>
       <th>Name</th>
+      <th>View POIs</th>
     </tr>
     </thead>
     <tbody>
     <tr repeat.for="category of categories">
       <td>${category.name}</td>
+      <td><a href="#/category/${category._id}" class="ui icon button"><i class="icon list"></i></a></td>
     </tr>
     </tbody>
   </table>

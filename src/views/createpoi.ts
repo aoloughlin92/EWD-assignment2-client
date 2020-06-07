@@ -11,6 +11,7 @@ export class Createpoi{
 
 
   constructor(private ps: PoiService){
+    ps.reset();
     this.categories = ps.categories;
   }
 

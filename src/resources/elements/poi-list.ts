@@ -12,4 +12,7 @@ export class PoiList {
   constructor(private ps: PoiService) {
   }
 
+  async deletePOI(params){
+    await this.ps.deletePOI(params);
+  }
 }
