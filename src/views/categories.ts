@@ -8,10 +8,6 @@ export class Categories{
   categories: Category[] =[];
 
   constructor(private ps: PoiService){
-    setInterval(() => this.updateData(), 10_000);
     this.categories = ps.categories;
-  }
-  updateData(){
-    this.categories = this.ps.categories;
   }
 }

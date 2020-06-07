@@ -29,7 +29,8 @@ export class PoiService {
 
   constructor(private httpClient: HttpClient, private ea: EventAggregator, private au: Aurelia, private router: Router) {
     httpClient.configure(http => {
-      http.withBaseUrl('http://LAPTOP-455FH4G9:3000');
+      http.withBaseUrl('https://shielded-springs-95184.herokuapp.com');
+      //http.withBaseUrl('http://LAPTOP-455FH4G9:3000');
     });
   }
 
@@ -351,6 +352,7 @@ export class PoiService {
   //Signup,  Login, Logout, Authenticate and Router
 
   async signup(firstName: string, lastName: string, email: string, password: string) {
+    let success = false;
     const user = {
       firstName: firstName,
       lastName: lastName,
@@ -358,12 +360,19 @@ export class PoiService {
       password: password
     };
     const response = await this.httpClient.post('/api/users', user);
-    const newUser = await response.content;
-    await this.reset();
-    //this.users.set(newUser.email, newUser);
-    //this.usersById.set(newUser._id, newUser);
-    this.changeRouter(PLATFORM.moduleName('app'));
-    return false;
+
+    const newUser = await response.content.user;
+    const status = await response.content;
+    if (newUser) {
+      this.httpClient.configure((configuration) => {
+        configuration.withHeader('Authorization', 'bearer ' + status.token);
+      });
+      localStorage.poi = JSON.stringify(response.content);
+      await this.reset();
+      this.changeRouter(PLATFORM.moduleName('app'));
+      success = status.success;
+      return success;
+    }
   }
 
   async login(email: string, password: string) {

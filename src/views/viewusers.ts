@@ -8,14 +8,9 @@ export class Viewusers{
 
 
   constructor(private ps: PoiService){
-    setInterval(() => this.updateData(), 20_000);
     this.users=ps.userArray;
   }
 
-  updateData(){
-    this.ps.reset();
-    this.users = this.ps.userArray;
-  }
 
   async deleteUser(params){
     await this.ps.deleteUser(params);
