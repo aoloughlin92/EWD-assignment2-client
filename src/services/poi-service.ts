@@ -29,7 +29,7 @@ export class PoiService {
 
   constructor(private httpClient: HttpClient, private ea: EventAggregator, private au: Aurelia, private router: Router) {
     httpClient.configure(http => {
-      http.withBaseUrl('https://shielded-springs-95184.herokuapp.com');
+      http.withBaseUrl('https://shielded-springs-95184.herokuapp.com');//heroku
       //http.withBaseUrl('http://LAPTOP-455FH4G9:3000');
     });
   }
