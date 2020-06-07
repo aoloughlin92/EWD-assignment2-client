@@ -1,0 +1,32 @@
+<template>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header">${user.firstName} ${user.lastName}</h3>
+    <h4>Email: ${user.email}</h4>
+  </div>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header"> POIs </h3>
+    <table class="ui celled table segment">
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Image</th>
+        <th>View</th>
+        <th>Delete</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr repeat.for="poi of pois">
+        <td>${poi.name}</td>
+        <td>${poi.description}</td>
+        <td>${poi.category.name}</td>
+        <td><img class="ui medium image" src="${poi.imageurls[0]}"></td>
+        <td><a href="#/poi/${poi._id}" class="ui icon button"><i class="icon list"></i></a></td>
+        <td><a click.trigger="deletePOI(poi._id)" class="ui icon button">
+          <i class="icon trash"></i></a></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</template>

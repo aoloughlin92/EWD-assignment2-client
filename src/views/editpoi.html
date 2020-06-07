@@ -1,0 +1,44 @@
+<template>
+  <div class="ui stacked fluid form segment">
+    <form submit.trigger="saveChanges()">
+      <h3 class="ui header">Edit POI</h3>
+      <div class="field">
+        <label>Name</label> <input value.bind="name" type="text"  value="${poi.name}" >
+      </div>
+      <div class="field">
+        <label>Description</label> <input  value.bind="description" type="text" value="${poi.description}">
+      </div>
+      <h4 class="ui dividing header"> Edit Coordinates </h4>
+      <div class="two fields">
+        <div class="field">
+          <label>Latitude</label> <input value.bind="location.lat" value="${location.lat}"/>
+        </div>
+        <div class="field">
+          <label>Longitude</label> <input value.bind="location.lng" value="${location.lng}"/>
+        </div>
+      </div>
+      <h4 class="ui dividing header"> Select Category </h4>
+      <div class="grouped inline fields">
+        <div class="field" repeat.for="category of categories">
+          <div class="ui radio checkbox">
+            <input checked.bind="selectedCategory" type="radio" model.bind="category" value="selectedCategory" >
+            <label>${category.name}</label>
+          </div>
+        </div>
+      </div>
+      <button class="ui blue submit button">Save</button>
+    </form>
+  </div>
+  <div class="ui stacked fluid form segment">
+    <form submit.trigger="uploadImage()">
+      <h3 class="ui header">Upload Image</h3>
+      <div>
+        <input type="file" files.bind="imagefile" accept="image/png, image/jpeg">
+      </div>
+      <button class="ui blue submit button">Upload</button>
+    </form>
+  </div>
+  <div repeat.for="imageurl of poi.imageurls"class="ui form stacked segment">
+    <img class="ui medium image" src="${imageurl}"> <a click.trigger="deleteImage($index)"class="ui icon button"> <i class="icon trash"></i></a>
+  </div>
+</template>

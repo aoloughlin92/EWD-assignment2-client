@@ -1,0 +1,9 @@
+<template>
+  <form submit.trigger="addNotice()" class="ui form stacked segment">
+    <h3 class="ui dividing header">Add a Notice</h3>
+    <div class="field"><label>Heading </label> <input value.bind="heading" /></div>
+    <div class="field"><label>Body </label> <textarea rows="2" value.bind="body"></textarea> </div>
+    <button class="ui blue submit button">Add</button>
+  </form>
+</template>
+

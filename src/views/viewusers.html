@@ -1,0 +1,29 @@
+<template>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header"> Users </h3>
+    <table class="ui celled table segment">
+      <thead>
+      <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>View POIs</th>
+        <th>Edit User</th>
+        <th>Delete User</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr repeat.for="user of users">
+        <td>${user.firstName}</td>
+        <td>${user.lastName}</td>
+        <td>${user.email}</td>
+        <td><a href="#/user/${user._id}" class="ui icon button"><i class="icon list"></i></a></td>
+        <td><a href="#/edituser/${user._id}" class="ui icon button"> <i class="icon edit"></i></a></td>
+        <td><a click.trigger="deleteUser(user._id)" class="ui icon button">
+          <i class="icon trash"></i></a></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+

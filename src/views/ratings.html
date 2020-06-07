@@ -1,0 +1,40 @@
+<template>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header">${poi.name}</h3>
+    <h4>Category: ${poi.category.name}</h4>
+    <h5>Creator: ${poi.creator.firstName} ${poi.creator.lastName} </h5>
+    <h5>Average Rating: ${averageRating} Stars </h5>
+    ${poi.description}
+  </div>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header">Photos</h3>
+    <div class="ui grid">
+      <div repeat.for="imageurl of poi.imageurls">
+        <div class="five wide column">
+          <img class="ui medium image" src="${imageurl}">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header">Ratings</h3>
+    <div repeat.for="rating of ratings">
+      <div class="ui stacked segment">
+        <h4>${myMap.get(rating.reviewer).firstName} ${myMap.get(rating.reviewer).lastName}</h4>
+        <h5>${rating.rating} stars</h5>
+        <p>${rating.review}</p>
+      </div>
+    </div>
+  </div>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header">Leave a Review</h3>
+    <form submit.trigger="leaveReview()" class="ui form stacked segment">
+      <h3 class="ui dividing header">Rating</h3>
+      <div>
+        <input type="number" value.bind="score" max="5" min="0"/>
+      </div>
+      <h3 class="ui dividing header">Review</h3>
+      <div class="field"><input type="text" value.bind="review" /></div>
+      <button class="ui blue submit button">Review</button>
+    </form>
+</template>

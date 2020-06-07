@@ -1,0 +1,18 @@
+<template>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header">${poi.name}</h3>
+    <h4>Category: ${poi.category.name}</h4>
+    <h5>Creator: ${poi.creator.firstName} ${poi.creator.lastName} </h5>
+    ${poi.description}
+  </div>
+    <div class="ui stacked segment">
+    <h3 class="ui dividing header">Photos</h3>
+    <div class="ui grid">
+      <div repeat.for="imageurl of poi.imageurls">
+        <div class="five wide column">
+          <img class="ui medium image" src="${imageurl}">
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

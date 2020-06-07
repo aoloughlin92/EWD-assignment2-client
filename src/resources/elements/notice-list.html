@@ -1,0 +1,25 @@
+<template>
+  <h5 class="ui dividing header">Notices</h5>
+  <div repeat.for="notice of notices" class="ui form stacked segment">
+    <h4>${notice.heading}</h4>
+    <small>${notice.user.firstName} ${notice.user.lastName}</small>
+    <div> ${notice.body}</div>
+    <div class="ui stacked segment">
+      <div repeat.for="comment of notice.comments"class="ui form stacked segment">
+        <h5> ${myMap.get(comment.commenter).firstName} ${myMap.get(comment.commenter).lastName} </h5>
+        ${comment.comment}
+      </div>
+      <div class="ui mini form">
+        <form submit.trigger="addComment(notice._id)" class="ui form stacked segment">
+          <div class="field"><input placeholder="Add a Comment" value.from-view="comment"></div>
+          <button class="ui blue submit button">Comment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div>
+  </div>
+  <div>
+  </div>
+
+</template>

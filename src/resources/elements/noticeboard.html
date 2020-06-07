@@ -1,0 +1,11 @@
+<template>
+  <require from="./notice-form"></require>
+  <require from="./notice-list"></require>
+  <div class="ui stacked segment">
+    <h3 class="ui dividing header"> Notice Board </h3>
+    <notice-form notices.bind="notices"></notice-form>
+    <div class="ui stacked segment">
+      <notice-list notices.bind="notices"></notice-list>
+    </div>
+  </div>
+</template>
